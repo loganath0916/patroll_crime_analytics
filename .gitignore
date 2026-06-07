@@ -1,0 +1,12 @@
+__pycache__/
+.ipynb_checkpoints/
+
+data/raw_data/
+
+models/mlruns/
+mlruns/
+
+data/
+*.csv
+
+*.db
