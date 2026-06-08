@@ -1,20 +1,20 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import mlflow
 
 st.set_page_config(
-    page_title="MLflow Monitoring",
+    page_title="Model Monitoring",
+    page_icon="📊",
     layout="wide"
 )
 
-st.title("📊 MLflow Model Monitoring")
+st.title("📊 Model Monitoring Dashboard")
 
 # ==========================================
 # MODEL COMPARISON
 # ==========================================
 
-st.header("🏆 Clustering Model Comparison")
+st.subheader("🏆 Clustering Model Comparison")
 
 comparison_df = pd.DataFrame({
     "Algorithm": [
@@ -40,8 +40,10 @@ st.dataframe(
 )
 
 # ==========================================
-# SILHOUETTE SCORE COMPARISON
+# SILHOUETTE SCORE
 # ==========================================
+
+st.subheader("📈 Silhouette Score Comparison")
 
 fig_silhouette = px.bar(
     comparison_df,
@@ -57,10 +59,12 @@ st.plotly_chart(
 )
 
 # ==========================================
-# DB INDEX COMPARISON
+# DAVIES BOULDIN
 # ==========================================
 
-fig_dbi = px.bar(
+st.subheader("📉 Davies-Bouldin Index Comparison")
+
+fig_db = px.bar(
     comparison_df,
     x="Algorithm",
     y="Davies-Bouldin Index",
@@ -69,7 +73,7 @@ fig_dbi = px.bar(
 )
 
 st.plotly_chart(
-    fig_dbi,
+    fig_db,
     use_container_width=True
 )
 
@@ -77,82 +81,70 @@ st.plotly_chart(
 # BEST MODEL
 # ==========================================
 
-st.header("🥇 Selected Model")
+st.subheader("🥇 Best Model Selection")
 
 st.success("""
-Best Model: KMeans
+Best Performing Model: KMeans
 
 Silhouette Score: 0.402
 
 Davies-Bouldin Index: 0.789
 
-Selected for crime hotspot detection and deployment.
+Selected as the final production model for crime hotspot detection.
 """)
 
 # ==========================================
 # PCA PERFORMANCE
 # ==========================================
 
-st.header("📈 PCA Performance")
+st.subheader("🔍 Dimensionality Reduction Performance")
 
-variance_df = pd.DataFrame({
+pca_df = pd.DataFrame({
     "Component": ["PC1", "PC2", "PC3"],
-    "Variance": [89.14, 5.41, 2.39]
+    "Variance Explained (%)": [
+        89.14,
+        5.41,
+        2.39
+    ]
 })
 
-fig_var = px.bar(
-    variance_df,
+fig_pca = px.bar(
+    pca_df,
     x="Component",
-    y="Variance",
+    y="Variance Explained (%)",
     color="Component",
     title="PCA Explained Variance"
 )
 
 st.plotly_chart(
-    fig_var,
+    fig_pca,
     use_container_width=True
 )
 
-st.success(
-    "Total Variance Explained: 96.94%"
-)
-
 # ==========================================
-# MLFLOW DETAILS
+# PROJECT SUMMARY
 # ==========================================
 
-st.header("🔬 Experiment Tracking")
+st.subheader("📋 Project Summary")
 
-st.info("""
-MLflow was used for:
-
-• Experiment Tracking
-
-• Parameter Logging
-
-• Metric Tracking
-
-• Model Comparison
-
-• Version Management
-
-• Best Model Selection
-""")
-
-# ==========================================
-# EXPERIMENT SUMMARY
-# ==========================================
-
-st.header("📋 Experiment Summary")
-
-summary_df = pd.DataFrame({
-    "Experiment": [
-        "KMeans_K8",
-        "DBSCAN",
-        "Hierarchical",
-        "PCA"
+summary = pd.DataFrame({
+    "Task": [
+        "Data Preprocessing",
+        "Feature Engineering",
+        "KMeans Clustering",
+        "DBSCAN Clustering",
+        "Hierarchical Clustering",
+        "PCA",
+        "t-SNE",
+        "MLflow Tracking",
+        "Streamlit Deployment"
     ],
     "Status": [
+        "Completed",
+        "Completed",
+        "Completed",
+        "Completed",
+        "Completed",
         "Completed",
         "Completed",
         "Completed",
@@ -161,20 +153,24 @@ summary_df = pd.DataFrame({
 })
 
 st.dataframe(
-    summary_df,
+    summary,
     use_container_width=True
 )
 
 # ==========================================
-# MLFLOW LINK
+# FINAL INSIGHTS
 # ==========================================
 
-st.header("🌐 MLflow Dashboard")
+st.subheader("📌 Final Insights")
 
-st.markdown(
-    "[Open MLflow Dashboard](http://127.0.0.1:5000)"
-)
+st.info("""
+• Geographic location is the strongest factor influencing crime patterns.
 
-st.success(
-    "All experiments successfully tracked using MLflow."
-)
+• PCA retained over 96% of the original variance.
+
+• KMeans achieved the best clustering performance.
+
+• Crime hotspots were successfully identified across Chicago.
+
+• Interactive dashboards enable exploration of spatial and temporal crime trends.
+""")

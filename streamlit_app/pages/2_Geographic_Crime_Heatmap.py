@@ -1,86 +1,68 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
 
-st.title("🗺️ Geographic Crime Analysis")
-
-# Load data
-df = pd.read_csv("../data/crime_feature_engineered.csv")
-
-# Check columns
-st.write("Dataset Shape:", df.shape)
-
-# Sidebar filters
-districts = st.sidebar.multiselect(
-    "Select District",
-    options=sorted(df["District"].dropna().unique()),
-    default=sorted(df["District"].dropna().unique())[:5]
+st.set_page_config(
+    page_title="Geographic Crime Heatmap",
+    page_icon="🗺️",
+    layout="wide"
 )
 
-filtered_df = df[df["District"].isin(districts)]
+# Load Dataset
+DATA_PATH = Path(__file__).parents[2] / "data" / "crime_deployment.csv"
 
-st.subheader("Crime Locations")
+@st.cache_data
+def load_data():
+    return pd.read_csv(DATA_PATH)
 
-# Interactive Map
-fig = px.scatter_mapbox(
-    filtered_df.sample(min(5000, len(filtered_df))),
-    lat="Latitude",
-    lon="Longitude",
-    color="Primary Type",
-    zoom=10,
-    height=700,
-    title="Crime Distribution Across Chicago"
-)
+try:
+    df = load_data()
 
-fig.update_layout(
-    mapbox_style="open-street-map",
-    margin=dict(l=0, r=0, t=40, b=0)
-)
+    st.title("🗺️ Geographic Crime Heatmap")
 
-st.plotly_chart(fig, use_container_width=True)
+    # Remove missing coordinates
+    map_df = df.dropna(
+        subset=["Latitude", "Longitude"]
+    )
 
-# Top Crime Areas
-st.subheader("Top Crime Districts")
+    st.write(
+        f"Showing {len(map_df):,} crime records"
+    )
 
-district_count = (
-    filtered_df["District"]
-    .value_counts()
-    .reset_index()
-)
+    # Sample for faster rendering
+    if len(map_df) > 10000:
+        map_df = map_df.sample(
+            10000,
+            random_state=42
+        )
 
-district_count.columns = ["District", "Crime Count"]
-
-bar_fig = px.bar(
-    district_count.head(10),
-    x="District",
-    y="Crime Count",
-    title="Top 10 Crime Districts"
-)
-
-st.plotly_chart(bar_fig, use_container_width=True)
-
-# Cluster Visualization
-if "KMeans_Cluster" in filtered_df.columns:
-
-    st.subheader("K-Means Crime Clusters")
-
-    cluster_fig = px.scatter_mapbox(
-        filtered_df.sample(min(5000, len(filtered_df))),
+    fig = px.scatter_map(
+        map_df,
         lat="Latitude",
         lon="Longitude",
-        color="KMeans_Cluster",
-        zoom=10,
+        color="Primary Type",
+        zoom=9,
         height=700,
-        title="Crime Hotspot Clusters"
+        title="Crime Distribution Across Chicago"
     )
 
-    cluster_fig.update_layout(
-        mapbox_style="open-street-map"
+    fig.update_layout(
+        map_style="open-street-map",
+        margin=dict(
+            l=0,
+            r=0,
+            t=50,
+            b=0
+        )
     )
 
-    st.plotly_chart(cluster_fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
-else:
-    st.warning(
-        "KMeans_Cluster column not found. Run clustering notebook first."
+except Exception as e:
+    st.error(
+        f"Error loading heatmap: {e}"
     )

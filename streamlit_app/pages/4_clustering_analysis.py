@@ -1,217 +1,158 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
 
 st.set_page_config(
-    page_title="Crime Clustering Analysis",
+    page_title="Clustering Analysis",
+    page_icon="🎯",
     layout="wide"
 )
 
-st.title("🎯 Crime Clustering Analysis")
+# Load Dataset
+DATA_PATH = Path(__file__).parents[2] / "data" / "crime_deployment.csv"
 
-# Load Data
-df = pd.read_csv("../data/crime_feature_engineered.csv")
+@st.cache_data
+def load_data():
+    return pd.read_csv(DATA_PATH)
 
-# =====================================================
-# KMEANS CLUSTERS
-# =====================================================
+try:
+    df = load_data()
 
-st.header("📍 K-Means Crime Hotspots")
+    st.title("🎯 Crime Clustering Analysis")
 
-if "KMeans_Cluster" in df.columns:
+    # ===============================
+    # KMEANS HOTSPOTS
+    # ===============================
+    st.subheader("📍 K-Means Crime Hotspots")
 
-    sample_df = df.sample(
-        min(5000, len(df)),
-        random_state=42
-    )
+    if "KMeans_Cluster" in df.columns:
 
-    fig_kmeans = px.scatter_mapbox(
-        sample_df,
-        lat="Latitude",
-        lon="Longitude",
-        color="KMeans_Cluster",
-        hover_data=["Primary Type"],
-        zoom=9,
-        height=600,
-        title="K-Means Crime Hotspots"
-    )
+        sample_df = df.sample(
+            min(10000, len(df)),
+            random_state=42
+        )
 
-    fig_kmeans.update_layout(
-        mapbox_style="open-street-map"
-    )
+        fig = px.scatter_mapbox(
+            sample_df,
+            lat="Latitude",
+            lon="Longitude",
+            color="KMeans_Cluster",
+            zoom=9,
+            height=700,
+            title="K-Means Crime Hotspots"
+        )
 
-    st.plotly_chart(
-        fig_kmeans,
-        use_container_width=True
-    )
+        fig.update_layout(
+            mapbox_style="open-street-map"
+        )
 
-else:
-    st.warning("KMeans_Cluster column not found.")
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-# =====================================================
-# DBSCAN CLUSTERS
-# =====================================================
+    else:
+        st.warning("KMeans_Cluster column not found.")
 
-st.header("📍 DBSCAN Crime Hotspots")
+    # ===============================
+    # DBSCAN HOTSPOTS
+    # ===============================
+    st.subheader("📍 DBSCAN Crime Hotspots")
 
-if "DBSCAN_Cluster" in df.columns:
+    if "DBSCAN_Cluster" in df.columns:
 
-    sample_df = df.sample(
-        min(5000, len(df)),
-        random_state=42
-    )
+        sample_df = df.sample(
+            min(10000, len(df)),
+            random_state=42
+        )
 
-    fig_dbscan = px.scatter_mapbox(
-        sample_df,
-        lat="Latitude",
-        lon="Longitude",
-        color="DBSCAN_Cluster",
-        hover_data=["Primary Type"],
-        zoom=9,
-        height=600,
-        title="DBSCAN Crime Clusters"
-    )
+        fig = px.scatter_mapbox(
+            sample_df,
+            lat="Latitude",
+            lon="Longitude",
+            color="DBSCAN_Cluster",
+            zoom=9,
+            height=700,
+            title="DBSCAN Crime Hotspots"
+        )
 
-    fig_dbscan.update_layout(
-        mapbox_style="open-street-map"
-    )
+        fig.update_layout(
+            mapbox_style="open-street-map"
+        )
 
-    st.plotly_chart(
-        fig_dbscan,
-        use_container_width=True
-    )
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-else:
-    st.warning("DBSCAN_Cluster column not found.")
+    else:
+        st.warning("DBSCAN_Cluster column not found.")
 
-# =====================================================
-# HIERARCHICAL CLUSTERS
-# =====================================================
+    # ===============================
+    # HIERARCHICAL HOTSPOTS
+    # ===============================
+    st.subheader("📍 Hierarchical Crime Hotspots")
 
-st.header("📍 Hierarchical Crime Hotspots")
+    if "Hierarchical_Cluster" in df.columns:
 
-if "Hierarchical_Cluster" in df.columns:
+        sample_df = df.sample(
+            min(10000, len(df)),
+            random_state=42
+        )
 
-    sample_df = df.sample(
-        min(5000, len(df)),
-        random_state=42
-    )
+        fig = px.scatter_mapbox(
+            sample_df,
+            lat="Latitude",
+            lon="Longitude",
+            color="Hierarchical_Cluster",
+            zoom=9,
+            height=700,
+            title="Hierarchical Crime Hotspots"
+        )
 
-    fig_hc = px.scatter_mapbox(
-        sample_df,
-        lat="Latitude",
-        lon="Longitude",
-        color="Hierarchical_Cluster",
-        hover_data=["Primary Type"],
-        zoom=9,
-        height=600,
-        title="Hierarchical Crime Clusters"
-    )
+        fig.update_layout(
+            mapbox_style="open-street-map"
+        )
 
-    fig_hc.update_layout(
-        mapbox_style="open-street-map"
-    )
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-    st.plotly_chart(
-        fig_hc,
-        use_container_width=True
-    )
+    else:
+        st.warning("Hierarchical_Cluster column not found.")
 
-else:
-    st.info("""
-    Hierarchical Clustering was performed on a representative sample
-    of crime locations because Agglomerative Clustering is computationally
-    expensive for 500K+ records.
+    # ===============================
+    # KMEANS DISTRIBUTION
+    # ===============================
+    st.subheader("📊 K-Means Cluster Distribution")
 
-    See clustering_analysis.ipynb for the generated dendrogram and evaluation metrics.
-    """)
+    if "KMeans_Cluster" in df.columns:
 
-# =====================================================
-# CLUSTER DISTRIBUTION
-# =====================================================
+        cluster_counts = (
+            df["KMeans_Cluster"]
+            .value_counts()
+            .reset_index()
+        )
 
-st.header("📊 K-Means Cluster Distribution")
+        cluster_counts.columns = [
+            "Cluster",
+            "Crime_Count"
+        ]
 
-if "KMeans_Cluster" in df.columns:
+        fig = px.bar(
+            cluster_counts,
+            x="Cluster",
+            y="Crime_Count",
+            color="Crime_Count",
+            title="Crime Count Per K-Means Cluster"
+        )
 
-    cluster_dist = (
-        df["KMeans_Cluster"]
-        .value_counts()
-        .reset_index()
-    )
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-    cluster_dist.columns = [
-        "Cluster",
-        "Crime_Count"
-    ]
-
-    fig_dist = px.bar(
-        cluster_dist,
-        x="Cluster",
-        y="Crime_Count",
-        color="Crime_Count",
-        title="Crime Count per Cluster"
-    )
-
-    st.plotly_chart(
-        fig_dist,
-        use_container_width=True
-    )
-
-# =====================================================
-# ALGORITHM PERFORMANCE
-# =====================================================
-
-st.header("🏆 Algorithm Comparison")
-
-comparison_df = pd.DataFrame({
-    "Algorithm": [
-        "KMeans",
-        "Hierarchical",
-        "DBSCAN"
-    ],
-    "Silhouette Score": [
-        0.402,
-        0.365,
-        -0.322
-    ],
-    "Davies-Bouldin Index": [
-        0.789,
-        0.807,
-        1.231
-    ]
-})
-
-st.dataframe(
-    comparison_df,
-    use_container_width=True
-)
-
-fig_compare = px.bar(
-    comparison_df,
-    x="Algorithm",
-    y="Silhouette Score",
-    color="Algorithm",
-    title="Silhouette Score Comparison"
-)
-
-st.plotly_chart(
-    fig_compare,
-    use_container_width=True
-)
-
-# =====================================================
-# BEST MODEL
-# =====================================================
-
-st.success("""
-🏆 Best Performing Model
-
-Algorithm: K-Means
-
-Silhouette Score: 0.402
-
-Davies-Bouldin Index: 0.789
-
-Selected for final deployment and hotspot detection.
-""")
+except Exception as e:
+    st.error(f"Error loading clustering analysis: {e}")
