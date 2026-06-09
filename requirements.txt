@@ -1,1 +1,10 @@
-freeze > requirements.txt
+streamlit
+pandas
+numpy
+scikit-learn
+plotly
+matplotlib
+seaborn
+mlflow
+joblib
+scipy
