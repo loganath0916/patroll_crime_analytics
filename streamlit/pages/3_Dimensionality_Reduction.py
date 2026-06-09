@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from pathlib import Path
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -23,7 +24,9 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("../data/crime_clustered_final.csv")
+    base_dir = Path(__file__).resolve().parents[2]
+    data_path = base_dir / "data" / "crime_clustered_final.csv"
+    return pd.read_csv(data_path)
 
 df = load_data()
 
